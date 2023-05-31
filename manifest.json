@@ -11,7 +11,8 @@
     },
 
     "action": {
-      "default_popup": "popup.html"
+      "default_popup": "popup.html",
+      "default_popup_css": "popup.css"
     },
     "permissions": [
       "tabs",
