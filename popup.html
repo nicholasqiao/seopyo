@@ -3,12 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <title>Seopyo</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
 </head>
 <body>
   <h1>Seopyo</h1>
   <button id="clear-button">Clear Storage</button>
   <button id="list-button">List Storage</button>
   <div id="url-display"></div>
+  <table id="chapter-table">
+    <thead>
+      <tr>
+        <th>Webtoon Name</th>
+        <th>Current Chapter</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+    </tbody>
+  </table>
   <script src="popup.js"></script>
 </body>
 </html>

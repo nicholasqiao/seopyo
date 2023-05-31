@@ -84,3 +84,14 @@ isAcceptedHost = (currentUrl, hostList) => {
     return currentUrl.includes(host);
   });
 };
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'getStorageData') {
+    // Retrieve the storage data from chrome.storage.local
+    chrome.storage.local.get(null, (storageData) => {
+      sendResponse(storageData);
+    });
+  }
+
+  return true; // Indicates that the response will be sent asynchronously
+});
