@@ -1,4 +1,4 @@
-# seopyo
+# seopyo - 서표
 A chrome extension to keep track of webtoon chapters
 
 Features
