@@ -1,38 +1,63 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Seopyo</title>
-  <link rel="stylesheet" type="text/css" href="popup.css">
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-  </style>
-</head>
-<body>
-  <h1>Seopyo</h1>
-  <button id="clear-button">Clear Storage</button>
-  <table id="chapter-table">
-    <thead>
-      <tr>
-        <th>Webtoon Name</th>
-        <th>Current Chapter</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="table-body">
-    </tbody>
-  </table>
-  <script src="popup.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Seopyo</title>
+    <link rel="stylesheet" type="text/css" href="popup.css" />
+  </head>
+  <body>
+    <h1>🔖 Seopyo</h1>
+    <div id="github-info" style="display: none">
+      <div>
+        <label for="github-token">Github Token: </label>
+        <input type="password" id="github-token" name="github-token" />
+        <button id="show-github-token-button">Show</button>
+        <button id="github-token-help-button">Help</button>
+      </div>
+      <div id="github-token-help" style="display: none">
+        <p>How to get a Github Token</p>
+        <ul>
+          <li>1. Create a Github account - <a href="https://github.com/" target="_blank">Here</a></li>
+          <li>
+            2. Navigate to the token page in settings -
+            <a href="https://github.com/settings/tokens?type=beta" target="_blank">Here</a>
+          </li>
+          <li>3. Create a "Fine-grained token" -> Grant "Gists" the "Read and write" access</li>
+          <li>4. Set the expiry date to a long time from now</li>
+          <li>5. Once the token is generated, save the Token that gets generated</li>
+          <li>6. You can then paste that token above and click the save button below</li>
+        </ul>
+      </div>
+      <p></p>
+      <div>
+        <label for="gist-url">Gist URL: </label>
+        <input type="text" id="gist-url" name="gist-url" />
+      </div>
+      <p></p>
+      <div>
+        <button id="save-github-info-button">Save Info</button>
+        <button id="load-gist-data-button">Load from Gist</button>
+        <button id="save-gist-data-button">Save to Gist</button>
+        <p></p>
+      </div>
+      <hr />
+    </div>
+
+    <p></p>
+    <button id="clear-button">Clear Storage</button>
+    <button id="list-button">List Storage</button>
+    <button id="settings-button">Settings</button>
+    <p></p>
+    <table id="chapter-table">
+      <thead>
+        <tr>
+          <th>Webtoon Name</th>
+          <th>Current Chapter</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <script src="popup.js"></script>
+  </body>
 </html>

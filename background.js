@@ -2,6 +2,7 @@
 
 accepted_hosts = ["reaperscans", "asurascans"];
 
+let comicName = "";
 // Add event listener for page navigation
 chrome.webNavigation.onCommitted.addListener(function (details) {
   // Check if the navigation is in the main frame
@@ -17,43 +18,43 @@ chrome.tabs.onActivated.addListener(function (activeInfo) {
 
 coreLogic = (activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, function (tab) {
+    const halfChapterRegex = /\d+-5/;
+
     const currentUrl = tab.url;
     const parts = currentUrl.split("-");
     const partsByBackslash = currentUrl.split("/");
-    const currentChapter = parts[parts.length - 1];
-    const strippedChapterId = currentChapter.replace(/\/$/, "");
-    const chapterIdIsInteger = /^\d+$/.test(strippedChapterId);
+
+    let currentChapter;
+    let strippedChapterId;
+
+    if (currentUrl.match(halfChapterRegex)) {
+      const match = currentUrl.match(halfChapterRegex)[0].replace(/-/g, ".");
+      strippedChapterId = match;
+    } else {
+      currentChapter = parts[parts.length - 1];
+      strippedChapterId = currentChapter.replace(/\/$/, "");
+    }
+
+    const validChapterId = /^(\d+|\d*\.\d+)$/.test(strippedChapterId);
     const mainUrl = partsByBackslash[2];
-    let comicName = "";
-    let comicKey = "";
 
     if (
+      // ReaperScans
       isAcceptedHost(currentUrl, accepted_hosts) &&
       mainUrl.includes("reaperscans") &&
       partsByBackslash.length > 4
     ) {
-      comicKey = partsByBackslash[4]
-        .replace(/[0-9\s-]/g, "")
-        .replace(/chapter/gi, "");
       comicName = partsByBackslash[4]
         .replace(/[0-9\s-]/g, " ")
         .replace(/chapter/gi, "")
         .trim();
-      updateBookmark(
-        comicKey,
-        comicName,
-        chapterIdIsInteger,
-        strippedChapterId,
-        currentUrl
-      );
+      updateBookmark(comicName, validChapterId, strippedChapterId, currentUrl);
     } else if (
+      // Asura Scans
       isAcceptedHost(currentUrl, accepted_hosts) &&
       mainUrl.includes("asurascans") &&
       partsByBackslash.length > 4
     ) {
-      comicKey = partsByBackslash[3]
-        .replace(/[0-9\s-]/g, "")
-        .replace(/chapter/gi, "");
       comicName = partsByBackslash[3]
         .replace(/[0-9\s-]/g, " ")
         .replace(/chapter/gi, "")
@@ -61,17 +62,13 @@ coreLogic = (activeInfo) => {
       if (comicName == "manga") {
         // This is the comic base page
         comicName = partsByBackslash[4]
-          .replace(/[0-9\s-]/g, "")
-          .replace(/chapter/gi, "");
+          .replace(/[0-9\s-]/g, " ")
+          .replace(/chapter/gi, "")
+          .trim();
       }
-      updateBookmark(
-        comicKey,
-        comicName,
-        chapterIdIsInteger,
-        strippedChapterId,
-        currentUrl
-      );
+      updateBookmark(comicName, validChapterId, strippedChapterId, currentUrl);
     } else {
+      // Show ??? for all non supported pages
       chrome.action.setBadgeText({
         text: "???",
       });
@@ -79,38 +76,52 @@ coreLogic = (activeInfo) => {
   });
 };
 
-updateBookmark = (
-  comicKey,
-  comicName,
-  chapterIdIsInteger,
-  strippedChapterId,
-  currentUrl
-) => {
+updateBookmark = (comicName, validChapterId, strippedChapterId, currentUrl) => {
   const key = comicName;
 
-  chrome.storage.local.get(key, (result) => {
-    if (result[key] == undefined && chapterIdIsInteger) {
+  chrome.storage.local.get(null, (result) => {
+    if (result["webtoons"][key] == undefined && validChapterId) {
       // This is for a new comic
       chrome.storage.local.set({
-        [comicName]: [strippedChapterId, currentUrl, comicKey],
+        webtoons: {
+          ...result["webtoons"],
+          [key]: [strippedChapterId, currentUrl],
+        },
       });
       chrome.action.setBadgeText({
         text: strippedChapterId,
       });
-    } else if (chapterIdIsInteger) {
+    } else if (validChapterId) {
       // Updating comic
-      if (parseInt(strippedChapterId) > parseInt(result[key])) {
+      if (
+        parseFloat(strippedChapterId) > parseFloat(result["webtoons"][key][0])
+      ) {
         chrome.storage.local.set({
-          [comicName]: [strippedChapterId, currentUrl, comicKey],
+          webtoons: {
+            ...result["webtoons"],
+            [key]: [strippedChapterId, currentUrl],
+          },
         });
         chrome.action.setBadgeText({
           text: strippedChapterId,
         });
       } else {
         chrome.action.setBadgeText({
-          text: result[key][0],
+          text: result["webtoons"][key][0],
         });
       }
+    } else {
+      chrome.storage.local.get(null, (result) => {
+        if (result["webtoons"][key] === undefined) {
+          chrome.action.setBadgeText({
+            text: "???",
+          });
+        } else {
+          chrome.action.setBadgeText({
+            text: result["webtoons"][key][0],
+          });
+        }
+      });
     }
   });
 };
@@ -123,7 +134,6 @@ isAcceptedHost = (currentUrl, hostList) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getStorageData") {
-    // Retrieve the storage data from chrome.storage.local
     chrome.storage.local.get(null, (storageData) => {
       sendResponse(storageData);
     });
@@ -131,19 +141,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true; // Indicates that the response will be sent asynchronously
 });
 
-// Listen for messages from the service worker
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "deleteChapter") {
-    const currentUrl = message.data[1];
+    chrome.storage.local.get(null).then((storageData) => {
+      const webtoonData = storageData["webtoons"];
+      const webtoonTitle = message.data[0];
+      delete webtoonData[webtoonTitle];
+      chrome.storage.local.set({ webtoons: webtoonData });
+    });
 
-    const currentComicName = currentUrl
-      .split("/")[4]
-      .replace(/[0-9\s-]/g, " ")
-      .replace(/chapter/gi, "")
-      .trim();
-
-    chrome.storage.local.remove(message.data[0]);
-    if (message.data[0] == currentComicName) {
+    if (message.data[0] == comicName) {
       chrome.action.setBadgeText({
         text: "???",
       });
@@ -151,10 +158,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "clearBadgeText") {
-    chrome.action.setBadgeText({
-      text: "???",
+chrome.runtime.onInstalled.addListener(function (details) {
+  if (details.reason === "install") {
+    chrome.storage.local.set({
+      webtoons: {},
     });
   }
 });
