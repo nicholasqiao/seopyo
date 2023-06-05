@@ -7,7 +7,9 @@ const settingsButton = document.getElementById("settings-button");
 const saveGithubInfoButton = document.getElementById("save-github-info-button");
 const loadGistDataButton = document.getElementById("load-gist-data-button");
 const saveGistDataButton = document.getElementById("save-gist-data-button");
-const githubTokenHelpButton = document.getElementById("github-token-help-button");
+const githubTokenHelpButton = document.getElementById(
+  "github-token-help-button"
+);
 const showGithubTokenButton = document.getElementById(
   "show-github-token-button"
 );
@@ -71,13 +73,13 @@ function toggleGithubTokenHelp() {
 }
 
 function listStorage() {
-  chrome.storage.local.get("webtoons", function(items) {
-    console.log(items)
+  chrome.storage.local.get("webtoons", function (items) {
+    console.log(items);
   });
 }
 
 function clearStorage() {
-  chrome.storage.local.set({ "webtoons": {} })
+  chrome.storage.local.set({ webtoons: {} });
   location.reload();
 }
 
@@ -107,14 +109,14 @@ function loadGistData() {
       .then((response) => response.json())
       .then((data) => {
         const jsonObject = JSON.parse(data.files["README.md"].content);
-        chrome.storage.local.set({ "webtoons": jsonObject });
+        chrome.storage.local.set({ webtoons: jsonObject });
+        alert("Successfully Loaded From Gist");
+        location.reload();
       })
       .catch((error) => {
         console.log(error);
       });
   });
-
-  location.reload();
 }
 
 function saveGistData() {
@@ -125,37 +127,47 @@ function saveGistData() {
 
     if (result["gistUrl"] === undefined || result["gistUrl"] === "") {
       // No gist -> Create and paste data
+      const url = "https://api.github.com/gists";
+      const token = githubToken;
 
-      fetch("https://api.github.com/gists", {
-        method: "POST",
-        headers: {
-          Accept: "application/vnd.github+json",
-          Authorization: "Bearer " + githubToken,
-          "X-GitHub-Api-Version": "2022-11-28",
-        },
-        body: JSON.stringify({
-          description: "Example of a gist",
-          public: false,
-          files: {
-            "README.md": JSON.stringify(webtoonData),
+      const headers = {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+      };
+
+      const data = {
+        description: "Example of a gist",
+        public: false,
+        files: {
+          "README.md": {
+            content: JSON.stringify(webtoonData),
           },
-        }),
+        },
+      };
+
+      fetch(url, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(data),
       })
         .then((response) => {
-          if (response.status != 201) {
-            alert(`${response.status} - Potential incorrect Github token`);
+          if (response.status === 201) {
+            return response.json();
+          } else {
+            alert(`${response.status} Error - Check credentials`);
+            throw new Error(`Error: ${response.status}`);
           }
-          return response.json();
         })
         .then((data) => {
           chrome.storage.local.set({ gistUrl: data.id });
+          alert("Successfully Saved + Updated Gist URL");
+          location.reload();
         })
         .catch((error) => {
-          console.log("Error:", error);
+          console.error(error);
         });
-    }
-
-    else {
+    } else {
       // Gist already created
       const url = "https://api.github.com/gists/" + gistUrl;
       const token = githubToken;
@@ -184,7 +196,7 @@ function saveGistData() {
           return response.json();
         })
         .then((data) => {
-          alert("Successfully Saved Data")
+          alert("Successfully Saved Data");
         })
         .catch((error) => {
           console.log("Error:", error);
@@ -257,7 +269,7 @@ self.addEventListener("checkForStoredValues", async (event) => {
 
 self.dispatchEvent(
   new MessageEvent("message", {
-    data: { action: "getStorageData"},
+    data: { action: "getStorageData" },
   })
 );
 
