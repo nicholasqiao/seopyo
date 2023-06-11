@@ -1,6 +1,6 @@
 // background.js (service worker)
 
-accepted_hosts = ["reaperscans", "asurascans"];
+const KEYWORDS_TO_SKIP = ["manga", "comic", "comics", "webtoon", "webtoons"];
 
 let comicName = "";
 // Add event listener for page navigation
@@ -24,54 +24,29 @@ coreLogic = (activeInfo) => {
     const parts = currentUrl.split("-");
     const partsByBackslash = currentUrl.split("/");
 
-    let currentChapter;
-    let strippedChapterId;
+    if (!currentUrl.includes("google.com")) {
+      let currentChapter;
+      let strippedChapterId;
 
-    if (currentUrl.match(halfChapterRegex)) {
-      const match = currentUrl.match(halfChapterRegex)[0].replace(/-/g, ".");
-      strippedChapterId = match;
-    } else {
-      currentChapter = parts[parts.length - 1];
-      strippedChapterId = currentChapter.replace(/\/$/, "");
-    }
+      if (currentUrl.match(halfChapterRegex)) {
+        const match = currentUrl.match(halfChapterRegex)[0].replace(/-/g, ".");
+        strippedChapterId = match;
+      } else {
+        currentChapter = parts[parts.length - 1];
+        strippedChapterId = currentChapter.replace(/\/$/, "");
+      }
 
-    const validChapterId = /^(\d+|\d*\.\d+)$/.test(strippedChapterId);
-    const mainUrl = partsByBackslash[2];
+      const validChapterId = /^(\d+|\d*\.\d+)$/.test(strippedChapterId);
 
-    if (
-      // ReaperScans
-      isAcceptedHost(currentUrl, accepted_hosts) &&
-      mainUrl.includes("reaperscans") &&
-      partsByBackslash.length > 4
-    ) {
-      comicName = partsByBackslash[4]
-        .replace(/[0-9\s-]/g, " ")
-        .replace(/chapter/gi, "")
-        .trim();
-      updateBookmark(comicName, validChapterId, strippedChapterId, currentUrl);
-    } else if (
-      // Asura Scans
-      isAcceptedHost(currentUrl, accepted_hosts) &&
-      mainUrl.includes("asurascans") &&
-      partsByBackslash.length > 4
-    ) {
-      comicName = partsByBackslash[3]
-        .replace(/[0-9\s-]/g, " ")
-        .replace(/chapter/gi, "")
-        .trim();
-      if (comicName == "manga") {
-        // This is the comic base page
-        comicName = partsByBackslash[4]
-          .replace(/[0-9\s-]/g, " ")
-          .replace(/chapter/gi, "")
-          .trim();
+      if (
+        partsByBackslash.length > 3 &&
+        shouldSkipKeyword(partsByBackslash[3], KEYWORDS_TO_SKIP)
+      ) {
+        comicName = returnComicName(partsByBackslash[4]);
+      } else {
+        comicName = returnComicName(partsByBackslash[3]);
       }
       updateBookmark(comicName, validChapterId, strippedChapterId, currentUrl);
-    } else {
-      // Show ??? for all non supported pages
-      chrome.action.setBadgeText({
-        text: "???",
-      });
     }
   });
 };
@@ -126,10 +101,18 @@ updateBookmark = (comicName, validChapterId, strippedChapterId, currentUrl) => {
   });
 };
 
-isAcceptedHost = (currentUrl, hostList) => {
-  return hostList.some((host) => {
-    return currentUrl.includes(host);
+shouldSkipKeyword = (currentKeyword, KEYWORDS_TO_SKIP) => {
+  return KEYWORDS_TO_SKIP.some((keyword) => {
+    return currentKeyword.includes(keyword);
   });
+};
+
+returnComicName = (urlSegment) => {
+  return urlSegment
+    .replace(/^\d+|\d+$/g, "")
+    .replace(/-/g, " ")
+    .replace(/chapter/gi, "")
+    .trim();
 };
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
