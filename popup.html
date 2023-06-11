@@ -7,7 +7,13 @@
   </head>
   <body>
     <h1>🔖 Seopyo</h1>
+    <button id="clear-button">Clear Storage</button>
+    <button id="list-button">List Storage</button>
+    <button id="settings-button">Show/Hide Settings</button>
+    <p></p>
     <div id="github-info" style="display: none">
+      <hr />
+      <h1>Github Gist Settings</h1>
       <div>
         <label for="github-token">Github Token: </label>
         <input type="password" id="github-token" name="github-token" />
@@ -41,19 +47,33 @@
         <p></p>
       </div>
       <hr />
+
+      <div>
+        <h1>Allowed Domains Settings</h1>
+        <p>Example: "https://www.asurascans.com/"</p>
+        <textarea id="allowed-domains-textarea"></textarea>
+        <p></p>
+        <button id="save-allowed-domains-button">Save</button>
+      </div>
+      <hr />
+
+
+
+
+
+
     </div>
 
-    <p></p>
-    <button id="clear-button">Clear Storage</button>
-    <button id="list-button">List Storage</button>
-    <button id="settings-button">Settings</button>
-    <p></p>
+
+
+
     <table id="chapter-table">
       <thead>
         <tr>
           <th>Webtoon Name</th>
           <th>Current Chapter</th>
           <th>Actions</th>
+          <th>Include</th>
         </tr>
       </thead>
       <tbody id="table-body"></tbody>

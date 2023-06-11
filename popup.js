@@ -79,8 +79,10 @@ function listStorage() {
 }
 
 function clearStorage() {
-  chrome.storage.local.set({ webtoons: {} });
-  location.reload();
+  if (window.confirm("Are you sure you want to proceed?")) {
+    chrome.storage.local.set({ webtoons: {} });
+    location.reload();
+  }
 }
 
 function deleteChapter(event) {
@@ -122,6 +124,10 @@ function loadGistData() {
 function saveGistData() {
   chrome.storage.local.get(null, (result) => {
     const webtoonData = result["webtoons"];
+    const filteredWebtoons = Object.fromEntries(
+      Object.entries(webtoonData).filter(([key, value]) => value[2])
+    );
+    
     const gistUrl = result["gistUrl"];
     const githubToken = result["githubToken"];
 
@@ -141,7 +147,7 @@ function saveGistData() {
         public: false,
         files: {
           "README.md": {
-            content: JSON.stringify(webtoonData),
+            content: JSON.stringify(filteredWebtoons),
           },
         },
       };
@@ -182,7 +188,7 @@ function saveGistData() {
         description: "An updated gist description",
         files: {
           "README.md": {
-            content: JSON.stringify(webtoonData),
+            content: JSON.stringify(filteredWebtoons),
           },
         },
       };
@@ -202,6 +208,15 @@ function saveGistData() {
           console.log("Error:", error);
         });
     }
+  });
+}
+
+function toggleInclude(event) {
+  const chapterName = event.target.getAttribute("data-id");
+
+  chrome.runtime.sendMessage({
+    action: "toggleIncludeWebtoon",
+    data: [chapterName],
   });
 }
 
@@ -225,6 +240,7 @@ self.addEventListener("message", async (event) => {
         const cell1 = document.createElement("td");
         const cell2 = document.createElement("td");
         const cell3 = document.createElement("td");
+        const cell4 = document.createElement("td");
 
         const link = document.createElement("a");
         link.href = `${value[1]}`;
@@ -243,9 +259,19 @@ self.addEventListener("message", async (event) => {
         deleteChapterButton.addEventListener("click", deleteChapter);
         cell3.appendChild(deleteChapterButton);
 
+        const checkboxToInclude = document.createElement("input");
+        if (value[2]) {
+          checkboxToInclude.checked = true;
+        }
+        checkboxToInclude.type = "checkbox";
+        checkboxToInclude.setAttribute("data-id", key);
+        checkboxToInclude.addEventListener("click", toggleInclude);
+        cell4.appendChild(checkboxToInclude);
+
         row.appendChild(cell1);
         row.appendChild(cell2);
         row.appendChild(cell3);
+        row.appendChild(cell4);
 
         tableBody.appendChild(row);
       }

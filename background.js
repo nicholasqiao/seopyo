@@ -60,7 +60,7 @@ updateBookmark = (comicName, validChapterId, strippedChapterId, currentUrl) => {
       chrome.storage.local.set({
         webtoons: {
           ...result["webtoons"],
-          [key]: [strippedChapterId, currentUrl],
+          [key]: [strippedChapterId, currentUrl, true],
         },
       });
       chrome.action.setBadgeText({
@@ -74,7 +74,7 @@ updateBookmark = (comicName, validChapterId, strippedChapterId, currentUrl) => {
         chrome.storage.local.set({
           webtoons: {
             ...result["webtoons"],
-            [key]: [strippedChapterId, currentUrl],
+            [key]: [strippedChapterId, currentUrl, true],
           },
         });
         chrome.action.setBadgeText({
@@ -138,6 +138,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         text: "???",
       });
     }
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "toggleIncludeWebtoon") {
+    chrome.storage.local.get(null).then((storageData) => {
+      const webtoonData = storageData["webtoons"];
+      const webtoonTitle = message.data[0];
+      
+      webtoonData[webtoonTitle][2] = !webtoonData[webtoonTitle][2]
+      chrome.storage.local.set({ webtoons: webtoonData });
+    });
   }
 });
 
