@@ -46,8 +46,10 @@ function coreLogic(activeInfo) {
       } else {
         comicName = returnComicName(partsByBackslash[3]);
       }
+      chrome.storage.local.set({ currentComicName: comicName });
       updateBookmark(comicName, validChapterId, strippedChapterId, currentUrl);
     } else {
+      chrome.storage.local.set({ currentComicName: "" });
       chrome.action.setBadgeText({
         text: "???",
       });

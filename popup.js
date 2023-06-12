@@ -288,6 +288,11 @@ self.addEventListener("message", async (event) => {
         const cell3 = document.createElement("td");
         const cell4 = document.createElement("td");
 
+        const currentComicName = await getCurrentComicName();
+        if (currentComicName == key) {
+          row.className = "currentComic";
+        }
+
         const link = document.createElement("a");
         link.href = `${value[1]}`;
         link.textContent = key;
@@ -324,6 +329,18 @@ self.addEventListener("message", async (event) => {
     }
   }
 });
+
+function getCurrentComicName() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get("currentComicName", (result) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result["currentComicName"]);
+      }
+    });
+  });
+}
 
 self.addEventListener("checkForStoredValues", async (event) => {
   chrome.storage.local.get("githubToken", function (items) {
