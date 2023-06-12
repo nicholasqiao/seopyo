@@ -16,15 +16,15 @@ chrome.tabs.onActivated.addListener(function (activeInfo) {
   coreLogic(activeInfo);
 });
 
-coreLogic = (activeInfo) => {
-  chrome.tabs.get(activeInfo.tabId, function (tab) {
+function coreLogic(activeInfo) {
+  chrome.tabs.get(activeInfo.tabId, async function (tab) {
     const halfChapterRegex = /\d+-5/;
 
     const currentUrl = tab.url;
     const parts = currentUrl.split("-");
     const partsByBackslash = currentUrl.split("/");
 
-    if (!currentUrl.includes("google.com")) {
+    if (await urlIsInAllowedList(currentUrl)) {
       let currentChapter;
       let strippedChapterId;
 
@@ -47,9 +47,13 @@ coreLogic = (activeInfo) => {
         comicName = returnComicName(partsByBackslash[3]);
       }
       updateBookmark(comicName, validChapterId, strippedChapterId, currentUrl);
+    } else {
+      chrome.action.setBadgeText({
+        text: "???",
+      });
     }
   });
-};
+}
 
 updateBookmark = (comicName, validChapterId, strippedChapterId, currentUrl) => {
   const key = comicName;
@@ -107,6 +111,20 @@ shouldSkipKeyword = (currentKeyword, KEYWORDS_TO_SKIP) => {
   });
 };
 
+urlIsInAllowedList = (currentUrl) => {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("allowedDomains", (result) => {
+      const allowedDomainsArray = result["allowedDomains"][1];
+
+      resolve(
+        allowedDomainsArray.some((domain) => {
+          return currentUrl.includes(domain);
+        })
+      );
+    });
+  });
+};
+
 returnComicName = (urlSegment) => {
   return urlSegment
     .replace(/^\d+|\d+$/g, "")
@@ -146,8 +164,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.local.get(null).then((storageData) => {
       const webtoonData = storageData["webtoons"];
       const webtoonTitle = message.data[0];
-      
-      webtoonData[webtoonTitle][2] = !webtoonData[webtoonTitle][2]
+
+      webtoonData[webtoonTitle][2] = !webtoonData[webtoonTitle][2];
       chrome.storage.local.set({ webtoons: webtoonData });
     });
   }

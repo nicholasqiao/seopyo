@@ -8,10 +8,12 @@
   <body>
     <h1>🔖 Seopyo</h1>
     <button id="clear-button">Clear Storage</button>
-    <button id="list-button">List Storage</button>
     <button id="settings-button">Show/Hide Settings</button>
     <p></p>
     <div id="github-info" style="display: none">
+      <div>
+        <button id="list-button">List Storage</button>
+      </div>
       <hr />
       <h1>Github Gist Settings</h1>
       <div>
@@ -23,7 +25,10 @@
       <div id="github-token-help" style="display: none">
         <p>How to get a Github Token</p>
         <ul>
-          <li>1. Create a Github account - <a href="https://github.com/" target="_blank">Here</a></li>
+          <li>
+            1. Create a Github account -
+            <a href="https://github.com/" target="_blank">Here</a>
+          </li>
           <li>
             2. Navigate to the token page in settings -
             <a href="https://github.com/settings/tokens?type=beta" target="_blank">Here</a>
@@ -31,6 +36,9 @@
           <li>3. Create a "Fine-grained token" -> Grant "Gists" the "Read and write" access</li>
           <li>4. Set the expiry date to a long time from now</li>
           <li>5. Once the token is generated, save the Token that gets generated</li>
+          <li>
+            <span class="tip-text">Tip: You can click the "show" button above to use your Token on another device</span>
+          </li>
           <li>6. You can then paste that token above and click the save button below</li>
         </ul>
       </div>
@@ -47,25 +55,17 @@
         <p></p>
       </div>
       <hr />
-
       <div>
         <h1>Allowed Domains Settings</h1>
-        <p>Example: "https://www.asurascans.com/"</p>
-        <textarea id="allowed-domains-textarea"></textarea>
+        <textarea
+          id="allowed-domains-textarea"
+          placeholder="https://www.webtoon-site-here.com/,&#10;https://www.webtoon-site-here.com/"
+        ></textarea>
         <p></p>
         <button id="save-allowed-domains-button">Save</button>
       </div>
       <hr />
-
-
-
-
-
-
     </div>
-
-
-
 
     <table id="chapter-table">
       <thead>

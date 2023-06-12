@@ -13,9 +13,15 @@ const githubTokenHelpButton = document.getElementById(
 const showGithubTokenButton = document.getElementById(
   "show-github-token-button"
 );
+const saveAllowedDomainsButton = document.getElementById(
+  "save-allowed-domains-button"
+);
 
 const githubToken = document.getElementById("github-token");
 const gistUrl = document.getElementById("gist-url");
+const allowedDomainsTextarea = document.getElementById(
+  "allowed-domains-textarea"
+);
 
 const tableBody = document.getElementById("table-body");
 const settingsDiv = document.getElementById("github-info");
@@ -29,6 +35,7 @@ loadGistDataButton.addEventListener("click", loadGistData);
 saveGistDataButton.addEventListener("click", saveGistData);
 showGithubTokenButton.addEventListener("click", toggleGithubTokenVisibility);
 githubTokenHelpButton.addEventListener("click", toggleGithubTokenHelp);
+saveAllowedDomainsButton.addEventListener("click", saveAllowedDomains);
 
 let currentUrl;
 chrome.tabs.query(
@@ -40,6 +47,26 @@ chrome.tabs.query(
     currentUrl = tabs[0].url;
   }
 );
+
+function saveAllowedDomains() {
+  const allowedDomainsText = allowedDomainsTextarea.value;
+  const domainListArray = allowedDomainsText.split(",");
+  let cleanedDomainListArray = [];
+
+  domainListArray.forEach((url) => {
+    if (url != "") {
+      url.trim();
+      var domain = url.match(
+        /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n]+)/im
+      )[1];
+      cleanedDomainListArray.push(domain);
+    }
+  });
+
+  chrome.storage.local.set({
+    allowedDomains: [allowedDomainsText, cleanedDomainListArray],
+  });
+}
 
 function toggleGithubTokenVisibility() {
   if (githubToken.type === "text") {
@@ -73,7 +100,7 @@ function toggleGithubTokenHelp() {
 }
 
 function listStorage() {
-  chrome.storage.local.get("webtoons", function (items) {
+  chrome.storage.local.get(null, function (items) {
     console.log(items);
   });
 }
@@ -100,6 +127,7 @@ function loadGistData() {
   chrome.storage.local.get(null, (result) => {
     const token = result["githubToken"];
     const gistId = result["gistUrl"];
+    const localWebtoonData = result["webtoons"];
 
     fetch(`https://api.github.com/gists/${gistId}`, {
       headers: {
@@ -111,8 +139,11 @@ function loadGistData() {
       .then((response) => response.json())
       .then((data) => {
         const jsonObject = JSON.parse(data.files["README.md"].content);
-        chrome.storage.local.set({ webtoons: jsonObject });
+        const updatedWebtoonData = { ...localWebtoonData, ...jsonObject };
+
+        chrome.storage.local.set({ webtoons: updatedWebtoonData });
         alert("Successfully Loaded From Gist");
+
         location.reload();
       })
       .catch((error) => {
@@ -127,7 +158,7 @@ function saveGistData() {
     const filteredWebtoons = Object.fromEntries(
       Object.entries(webtoonData).filter(([key, value]) => value[2])
     );
-    
+
     const gistUrl = result["gistUrl"];
     const githubToken = result["githubToken"];
 
@@ -289,6 +320,12 @@ self.addEventListener("checkForStoredValues", async (event) => {
   chrome.storage.local.get("gistUrl", function (items) {
     if (items["gistUrl"] !== undefined) {
       gistUrl.value = items["gistUrl"];
+    }
+  });
+
+  chrome.storage.local.get("allowedDomains", function (items) {
+    if (items["allowedDomains"] !== undefined) {
+      allowedDomainsTextarea.value = items["allowedDomains"][0];
     }
   });
 });
