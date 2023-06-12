@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Seopyo",
     "description": "A chrome extension to keep track of webtoon chapters",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "icons": {
       "128": "seopyo.png"
     },

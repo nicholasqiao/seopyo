@@ -16,6 +16,7 @@ const showGithubTokenButton = document.getElementById(
 const saveAllowedDomainsButton = document.getElementById(
   "save-allowed-domains-button"
 );
+const copyAllStorageButton = document.getElementById("copy-all-storage-button");
 
 const githubToken = document.getElementById("github-token");
 const gistUrl = document.getElementById("gist-url");
@@ -36,6 +37,7 @@ saveGistDataButton.addEventListener("click", saveGistData);
 showGithubTokenButton.addEventListener("click", toggleGithubTokenVisibility);
 githubTokenHelpButton.addEventListener("click", toggleGithubTokenHelp);
 saveAllowedDomainsButton.addEventListener("click", saveAllowedDomains);
+copyAllStorageButton.addEventListener("click", copyAllStorageToClipboard);
 
 let currentUrl;
 chrome.tabs.query(
@@ -47,6 +49,19 @@ chrome.tabs.query(
     currentUrl = tabs[0].url;
   }
 );
+
+function copyAllStorageToClipboard() {
+  chrome.storage.local.get(null, function (items) {
+    navigator.clipboard
+      .writeText(JSON.stringify(items["webtoons"]))
+      .then(() => {
+        alert("Text copied to clipboard");
+      })
+      .catch((error) => {
+        alert("Error copying text to clipboard:", error);
+      });
+  });
+}
 
 function saveAllowedDomains() {
   const allowedDomainsText = allowedDomainsTextarea.value;
