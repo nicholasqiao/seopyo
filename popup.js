@@ -18,6 +18,7 @@ const saveAllowedDomainsButton = document.getElementById(
 );
 const copyAllStorageButton = document.getElementById("copy-all-storage-button");
 const loadViaJsonButton = document.getElementById("load-via-json-button");
+const helpButton = document.getElementById("help-button");
 
 const githubToken = document.getElementById("github-token");
 const gistUrl = document.getElementById("gist-url");
@@ -29,6 +30,7 @@ const loadViaJsonTextarea = document.getElementById("load-via-json-textarea");
 const tableBody = document.getElementById("table-body");
 const settingsDiv = document.getElementById("github-info");
 const githubTokenHelpDiv = document.getElementById("github-token-help");
+const helpSection = document.getElementById("help-section");
 
 clearButton.addEventListener("click", clearStorage);
 listButton.addEventListener("click", listStorage);
@@ -41,6 +43,7 @@ githubTokenHelpButton.addEventListener("click", toggleGithubTokenHelp);
 saveAllowedDomainsButton.addEventListener("click", saveAllowedDomains);
 copyAllStorageButton.addEventListener("click", copyAllStorageToClipboard);
 loadViaJsonButton.addEventListener("click", loadViaJson);
+helpButton.addEventListener("click", toggleHelp);
 
 let currentUrl;
 chrome.tabs.query(
@@ -52,6 +55,16 @@ chrome.tabs.query(
     currentUrl = tabs[0].url;
   }
 );
+
+function toggleHelp() {
+  if (helpSection.style.display === "none") {
+    helpButton.textContent = "Hide Help"
+    helpSection.style.display = "block";
+  } else {
+    helpButton.textContent = "Show Help"
+    helpSection.style.display = "none";
+  }
+}
 
 function loadViaJson() {
   try {
@@ -117,8 +130,10 @@ function saveGithubSettings() {
 
 function toggleSettings() {
   if (settingsDiv.style.display === "none") {
+    settingsButton.textContent = "Hide Settings"
     settingsDiv.style.display = "block";
   } else {
+    settingsButton.textContent = "Show Settings"
     settingsDiv.style.display = "none";
   }
 }
