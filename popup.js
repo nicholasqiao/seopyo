@@ -17,12 +17,14 @@ const saveAllowedDomainsButton = document.getElementById(
   "save-allowed-domains-button"
 );
 const copyAllStorageButton = document.getElementById("copy-all-storage-button");
+const loadViaJsonButton = document.getElementById("load-via-json-button");
 
 const githubToken = document.getElementById("github-token");
 const gistUrl = document.getElementById("gist-url");
 const allowedDomainsTextarea = document.getElementById(
   "allowed-domains-textarea"
 );
+const loadViaJsonTextarea = document.getElementById("load-via-json-textarea");
 
 const tableBody = document.getElementById("table-body");
 const settingsDiv = document.getElementById("github-info");
@@ -38,6 +40,7 @@ showGithubTokenButton.addEventListener("click", toggleGithubTokenVisibility);
 githubTokenHelpButton.addEventListener("click", toggleGithubTokenHelp);
 saveAllowedDomainsButton.addEventListener("click", saveAllowedDomains);
 copyAllStorageButton.addEventListener("click", copyAllStorageToClipboard);
+loadViaJsonButton.addEventListener("click", loadViaJson);
 
 let currentUrl;
 chrome.tabs.query(
@@ -49,6 +52,20 @@ chrome.tabs.query(
     currentUrl = tabs[0].url;
   }
 );
+
+function loadViaJson() {
+  try {
+    JSON.parse(loadViaJsonTextarea.value);
+    const jsonData = JSON.parse(loadViaJsonTextarea.value);
+    chrome.storage.local.set({ webtoons: jsonData });
+    alert("Successfully Loaded From JSON");
+    location.reload();
+    return true;
+  } catch (error) {
+    alert("Invalid JSON: " + error.message);
+    return false;
+  }
+}
 
 function copyAllStorageToClipboard() {
   chrome.storage.local.get(null, function (items) {
