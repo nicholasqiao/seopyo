@@ -80,7 +80,7 @@ updateBookmark = (comicName, validChapterId, strippedChapterId, currentUrl) => {
         chrome.storage.local.set({
           webtoons: {
             ...result["webtoons"],
-            [key]: [strippedChapterId, currentUrl, true],
+            [key]: [strippedChapterId, currentUrl, result["webtoons"][key][2]],
           },
         });
         chrome.action.setBadgeText({
