@@ -18,7 +18,7 @@ chrome.tabs.onActivated.addListener(function (activeInfo) {
 
 function coreLogic(activeInfo) {
   chrome.tabs.get(activeInfo.tabId, async function (tab) {
-    const halfChapterRegex = /\d+-5/;
+    const halfChapterRegex = /\d+-\d+/;
 
     const currentUrl = tab.url;
     const parts = currentUrl.split("-");
