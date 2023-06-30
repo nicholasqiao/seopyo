@@ -19,6 +19,9 @@ const saveAllowedDomainsButton = document.getElementById(
 const copyAllStorageButton = document.getElementById("copy-all-storage-button");
 const loadViaJsonButton = document.getElementById("load-via-json-button");
 const helpButton = document.getElementById("help-button");
+const splitUrlButton = document.getElementById("split-url-button");
+const saveNewRuleBUtton = document.getElementById("save-new-rule-button");
+const ruleEditorHelpButton = document.getElementById("rule-editor-help-button");
 
 const githubToken = document.getElementById("github-token");
 const gistUrl = document.getElementById("gist-url");
@@ -26,11 +29,16 @@ const allowedDomainsTextarea = document.getElementById(
   "allowed-domains-textarea"
 );
 const loadViaJsonTextarea = document.getElementById("load-via-json-textarea");
+const sampleUrlInput = document.getElementById("sample-url-input");
+const hubPageUrlInput = document.getElementById("hub-page-url-input");
+const chapterIndexinput = document.getElementById("chapter-index-input");
+const nameIndexInput = document.getElementById("name-index-input");
 
 const tableBody = document.getElementById("table-body");
-const settingsDiv = document.getElementById("github-info");
+const settingsDiv = document.getElementById("settings-div");
 const githubTokenHelpDiv = document.getElementById("github-token-help");
 const helpSection = document.getElementById("help-section");
+const splitTable = document.getElementById("url-split-table");
 
 clearButton.addEventListener("click", clearStorage);
 listButton.addEventListener("click", listStorage);
@@ -44,6 +52,9 @@ saveAllowedDomainsButton.addEventListener("click", saveAllowedDomains);
 copyAllStorageButton.addEventListener("click", copyAllStorageToClipboard);
 loadViaJsonButton.addEventListener("click", loadViaJson);
 helpButton.addEventListener("click", toggleHelp);
+splitUrlButton.addEventListener("click", splitUrl);
+saveNewRuleBUtton.addEventListener("click", saveNewRule);
+ruleEditorHelpButton.addEventListener("click", toggleRuleEditorHelp);
 
 let currentUrl;
 chrome.tabs.query(
@@ -56,13 +67,110 @@ chrome.tabs.query(
   }
 );
 
+function capitalizeWords(str) {
+  return str.replace(/\b\w/g, function (match) {
+    return match.toUpperCase();
+  });
+}
+
+function extractDomain(url) {
+  const domainRegex = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n]+)/im;
+  const matches = url.match(domainRegex);
+  if (matches && matches.length > 1) {
+    return matches[0];
+  }
+  return null;
+}
+
+function saveNewRule() {
+  const chapterIndex = chapterIndexinput.value;
+  const nameIndex = nameIndexInput.value;
+  const sampleUrl = sampleUrlInput.value;
+  const hubUrlValue = hubPageUrlInput.value.replace(/\/+$/, "");
+  const hubUrlSplit = hubUrlValue.split("/");
+  const hubUrlSplitLength = hubUrlSplit.length;
+  const urlDomain = extractDomain(sampleUrl);
+
+  chrome.storage.local.get(null, (result) => {
+    chrome.storage.local.set({
+      domainParseRules: {
+        ...result["domainParseRules"],
+        [urlDomain]: {
+          chapterIndex: [chapterIndex],
+          nameIndex: [nameIndex],
+          hubPageLength: [hubUrlSplitLength],
+        },
+      },
+    });
+  });
+
+  location.reload();
+}
+
+function splitUrl() {
+  const ruleEditorSubsection = document.getElementById(
+    "rule-editor-subsection"
+  );
+  ruleEditorSubsection.style.display = "block";
+
+  while (splitTable.rows.length > 0) {
+    splitTable.deleteRow(0);
+  }
+
+  const urlValue = sampleUrlInput.value.replace(/\/+$/, "");
+  const urlSplit = urlValue.split("/");
+
+  const hubUrlValue = hubPageUrlInput.value.replace(/\/+$/, "");
+  const hubUrlSplit = hubUrlValue.split("/");
+
+  urlSplit.map((currentValue, index) => {
+    const newRow = document.createElement("tr");
+    const cell1 = document.createElement("td");
+    cell1.textContent = index;
+    const cell2 = document.createElement("td");
+    cell2.textContent = currentValue;
+
+    newRow.appendChild(cell1);
+    newRow.appendChild(cell2);
+    splitTable.appendChild(newRow);
+  });
+
+  // hubUrlSplit.map((currentValue, index) => {
+  //   let currentRow = splitTable.rows[index]
+  //   if (currentRow == undefined) {
+  //     currentRow = document.createElement("tr");
+  //     const cell1 = document.createElement("td");
+  //     cell1.textContent = index
+  //     const cell2 = document.createElement("td");
+  //     cell2.textContent = "<NONE>"
+  //     currentRow.appendChild(cell1);
+  //     currentRow.appendChild(cell2);
+  //     splitTable.appendChild(currentRow)
+  //   }
+  //   const newCell = document.createElement("td");
+  //   newCell.textContent = currentValue
+  //   currentRow.appendChild(newCell)
+  // })
+}
+
 function toggleHelp() {
   if (helpSection.style.display === "none") {
-    helpButton.textContent = "Hide Help"
+    helpButton.textContent = "Hide Help";
     helpSection.style.display = "block";
   } else {
-    helpButton.textContent = "Show Help"
+    helpButton.textContent = "Show Help";
     helpSection.style.display = "none";
+  }
+}
+
+function toggleRuleEditorHelp() {
+  const ruleEditorHelpSection = document.getElementById(
+    "rule-editor-help-section"
+  );
+  if (ruleEditorHelpSection.style.display === "none") {
+    ruleEditorHelpSection.style.display = "block";
+  } else {
+    ruleEditorHelpSection.style.display = "none";
   }
 }
 
@@ -130,10 +238,10 @@ function saveGithubSettings() {
 
 function toggleSettings() {
   if (settingsDiv.style.display === "none") {
-    settingsButton.textContent = "Hide Settings"
+    settingsButton.textContent = "Hide Settings";
     settingsDiv.style.display = "block";
   } else {
-    settingsButton.textContent = "Show Settings"
+    settingsButton.textContent = "Show Settings";
     settingsDiv.style.display = "none";
   }
 }
@@ -163,11 +271,29 @@ function deleteChapter(event) {
   const chapterName = event.target.getAttribute("data-id");
   const currentUrl = event.target.getAttribute("current-url");
 
-  chrome.runtime.sendMessage({
-    action: "deleteChapter",
-    data: [chapterName, currentUrl],
-  });
-  location.reload();
+  if (window.confirm("Are you sure you want to proceed?")) {
+    chrome.runtime.sendMessage({
+      action: "deleteChapter",
+      data: [chapterName, currentUrl],
+    });
+    location.reload();
+  }
+}
+
+function editWebtoon(event) {
+  const webtoonId = event.target.getAttribute("data-id");
+  const webtoonName = event.target.getAttribute("webtoonName");
+
+  let newWebtoonName = window.prompt("Edit Webtoon Name", webtoonName);
+
+  if (newWebtoonName != null && newWebtoonName != "") {
+    chrome.runtime.sendMessage({
+      action: "editWebtoon",
+      data: [webtoonId, newWebtoonName],
+    });
+
+    location.reload();
+  }
 }
 
 function loadGistData() {
@@ -327,9 +453,22 @@ self.addEventListener("message", async (event) => {
 
         const link = document.createElement("a");
         link.href = `${value[1]}`;
-        link.textContent = key;
+        link.textContent = value[3];
         link.target = "_blank";
         cell1.appendChild(link);
+
+        const editButton = document.createElement("button");
+        editButton.className = "bootstrapicon";
+        editButton.setAttribute("data-id", key);
+        editButton.setAttribute("webtoonName", value[3]);
+
+        const itag = document.createElement("i");
+        itag.className = "bi bi-pencil-square";
+        itag.setAttribute("data-id", key);
+        itag.setAttribute("webtoonName", value[3]);
+        itag.addEventListener("click", editWebtoon);
+        editButton.appendChild(itag);
+        cell1.appendChild(editButton);
 
         cell2.textContent = value[0];
 
@@ -359,8 +498,61 @@ self.addEventListener("message", async (event) => {
         tableBody.appendChild(row);
       }
     }
+
+    // Populate Rule Editor
+
+    const splitTableData = storageData["domainParseRules"];
+    const ruleEditorTable = document.getElementById("rule-editor-table");
+    // Iterate over the storageData and add rows to the table
+    for (const key in splitTableData) {
+      if (splitTableData.hasOwnProperty(key)) {
+        const value = splitTableData[key];
+
+        const row = document.createElement("tr");
+        const cell1 = document.createElement("td");
+        const cell2 = document.createElement("td");
+        const cell3 = document.createElement("td");
+        const cell4 = document.createElement("td");
+        const cell5 = document.createElement("td");
+
+        cell1.textContent = key;
+        row.appendChild(cell1);
+
+        cell2.textContent = value.chapterIndex;
+        row.appendChild(cell2);
+
+        cell3.textContent = value.nameIndex;
+        row.appendChild(cell3);
+
+        cell4.textContent = value.hubPageLength;
+        row.appendChild(cell4);
+
+        const deleteRuleButton = document.createElement("button");
+        deleteRuleButton.textContent = "Delete";
+        deleteRuleButton.setAttribute("url-key", key);
+        deleteRuleButton.addEventListener("click", deleteRule);
+        cell5.appendChild(deleteRuleButton);
+        row.appendChild(cell5);
+
+        ruleEditorTable.appendChild(row);
+      }
+    }
   }
 });
+
+function deleteRule(event) {
+  if (window.confirm("Are you sure you want to proceed?")) {
+    const urlKey = event.target.getAttribute("url-key");
+
+    chrome.storage.local.get(null, (result) => {
+      const rules = result["domainParseRules"];
+      delete rules[urlKey];
+      chrome.storage.local.set({ domainParseRules: rules });
+    });
+
+    location.reload();
+  }
+}
 
 function getCurrentComicName() {
   return new Promise((resolve, reject) => {

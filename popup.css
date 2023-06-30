@@ -44,3 +44,18 @@ textarea {
 .material-symbols-outlined {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 48;
 }
+
+.longer-input {
+  width: 500px;
+}
+
+.bootstrapicon {
+  margin-left: 10px;
+	background: none;
+	color: inherit;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+}
