@@ -33,6 +33,7 @@ const sampleUrlInput = document.getElementById("sample-url-input");
 const hubPageUrlInput = document.getElementById("hub-page-url-input");
 const chapterIndexinput = document.getElementById("chapter-index-input");
 const nameIndexInput = document.getElementById("name-index-input");
+const searchInput = document.getElementById("search-input");
 
 const tableBody = document.getElementById("table-body");
 const settingsDiv = document.getElementById("settings-div");
@@ -55,6 +56,7 @@ helpButton.addEventListener("click", toggleHelp);
 splitUrlButton.addEventListener("click", splitUrl);
 saveNewRuleBUtton.addEventListener("click", saveNewRule);
 ruleEditorHelpButton.addEventListener("click", toggleRuleEditorHelp);
+searchInput.addEventListener("input", filterWebtoons);
 
 let currentUrl;
 chrome.tabs.query(
@@ -66,6 +68,77 @@ chrome.tabs.query(
     currentUrl = tabs[0].url;
   }
 );
+
+function filterWebtoons() {
+  chrome.storage.local.get(null, (result) => {
+    const webtoons = result["webtoons"];
+    const filteredDictionary = {};
+
+    for (const [key, array] of Object.entries(webtoons)) {
+      if (array[3].toLowerCase().includes(searchInput.value.toLowerCase())) {
+        filteredDictionary[key] = array;
+      }
+    }
+
+    tableBody.innerHTML = "";
+    for (const key in filteredDictionary) {
+      if (filteredDictionary.hasOwnProperty(key)) {
+        const value = filteredDictionary[key];
+        const row = document.createElement("tr");
+        const cell1 = document.createElement("td");
+        const cell2 = document.createElement("td");
+        const cell3 = document.createElement("td");
+        const cell4 = document.createElement("td");
+
+        const link = document.createElement("a");
+        link.href = `${value[1]}`;
+        link.textContent = value[3];
+        link.target = "_blank";
+        cell1.appendChild(link);
+
+        const editButton = document.createElement("button");
+        editButton.className = "bootstrapicon";
+        editButton.setAttribute("data-id", key);
+        editButton.setAttribute("webtoonName", value[3]);
+
+        const itag = document.createElement("i");
+        itag.className = "bi bi-pencil-square";
+        itag.setAttribute("data-id", key);
+        itag.setAttribute("webtoonName", value[3]);
+        itag.addEventListener("click", editWebtoon);
+        editButton.appendChild(itag);
+        cell1.appendChild(editButton);
+
+        cell2.textContent = value[0];
+
+        const deleteChapterButton = document.createElement("button");
+        deleteChapterButton.textContent = "Delete";
+        deleteChapterButton.id = "myButton";
+        deleteChapterButton.className = "btn";
+        deleteChapterButton.setAttribute("data-id", key);
+        deleteChapterButton.setAttribute("current-url", currentUrl);
+        deleteChapterButton.addEventListener("click", deleteChapter);
+        cell3.appendChild(deleteChapterButton);
+
+        const checkboxToInclude = document.createElement("input");
+        if (value[2]) {
+          checkboxToInclude.checked = true;
+        }
+        checkboxToInclude.type = "checkbox";
+        checkboxToInclude.setAttribute("data-id", key);
+        checkboxToInclude.addEventListener("click", toggleInclude);
+        cell4.appendChild(checkboxToInclude);
+
+        row.appendChild(cell1);
+        row.appendChild(cell2);
+        row.appendChild(cell3);
+        row.appendChild(cell4);
+
+        tableBody.appendChild(row);
+      }
+    }
+  });
+}
 
 function capitalizeWords(str) {
   return str.replace(/\b\w/g, function (match) {
