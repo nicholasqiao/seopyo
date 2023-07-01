@@ -169,7 +169,7 @@ updateBookmark = (comicName, validChapterId, strippedChapterId, currentUrl) => {
               strippedChapterId,
               currentUrl,
               result["webtoons"][key][2],
-              comicName,
+              result["webtoons"][key][3],
             ],
           },
         });
