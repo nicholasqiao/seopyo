@@ -86,7 +86,7 @@ function coreLogic(activeInfo) {
 
           comicName = capitalizeWords(
             everythingBeforeChapter
-              .replace(/-\d+|\d+-/g, "")
+              .replace(/^-?\d+|\d+-$/, "")
               .replace(/-/g, " ")
               .replace(/chapter/gi, "")
               .trim()
@@ -117,7 +117,7 @@ function coreLogic(activeInfo) {
 
             comicName = capitalizeWords(
               everythingBeforeChapter
-                .replace(/-\d+|\d+-/g, "")
+                .replace(/^-?\d+|\d+-$/, "")
                 .replace(/-/g, " ")
                 .replace(/chapter/gi, "")
                 .replace(/\?.*$/, "")
@@ -208,16 +208,6 @@ urlIsInAllowedList = (currentUrl) => {
       );
     });
   });
-};
-
-returnComicName = (urlSegment) => {
-  return capitalizeWords(
-    urlSegment
-      .replace(/^\d+|\d+$/g, "")
-      .replace(/-/g, " ")
-      .replace(/chapter/gi, "")
-      .trim()
-  );
 };
 
 capitalizeWords = (str) => {
