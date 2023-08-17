@@ -57,18 +57,27 @@ function coreLogic(activeInfo) {
           const currentSegment = partsByBackslash[chapterIndex];
 
           if (currentSegment.match(halfChapterRegex)) {
+            // Decimal Chapter
             const match = currentSegment
               .match(halfChapterRegex)[0]
               .replace(/-/g, ".");
             strippedChapterId = match;
           } else {
+            // Whole Chapter
             currentChapter = partsByBackslash[chapterIndex];
 
             const regex = /chapter-(\d+)/;
+            const regex2 = /-(\d+)/;
             const match = currentChapter.match(regex);
+            const match2 = currentChapter.match(regex2);
 
             if (match && match.length > 1) {
               const number = match[1];
+              strippedChapterId = number;
+            }
+
+            if (match2 && match2.length > 1) {
+              const number = match2[1];
               strippedChapterId = number;
             }
           }
@@ -275,6 +284,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
     chrome.storage.local.set({
       webtoons: {},
+      domainParseRules: {}
     });
   }
 });

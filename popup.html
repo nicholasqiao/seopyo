@@ -26,6 +26,102 @@
         <button id="clear-button">Clear Storage</button>
       </div>
       <hr />
+      <div style="display: none">
+        <h1>Allowed Domains Settings</h1>
+        <textarea
+          id="allowed-domains-textarea"
+          placeholder="https://www.webtoon-site-here.com/,&#10;https://www.webtoon-site-here.com/"
+        ></textarea>
+        <p></p>
+        <button id="save-allowed-domains-button">Save</button>
+      </div>
+      <div>
+        <h1>Rule Editor<i id="rule-editor-help-button" class="bi bi-question-circle bootstrapicon"></i></h1>
+        <div style="display: none" id="rule-editor-help-section">
+          <h1>Rule Editor - Help</h1>
+          <ul>
+            <li>1. Enter in URLs for chapter page & webtoon hub page</li>
+            <li>2. Press Scan</li>
+            <li>3. Look under the "Chapter Value" column</li>
+            <li>
+              4. Enter the corresponding Index value that corresponds with the row that contains the chapter in the
+              "Chapter Index" input field
+            </li>
+            <li>5. Do the same for the "Name Index" field</li>
+            <li>6. Save</li>
+            <li>7. Effectively this is setting how the URLs will be parsed for webtoon name & chapter number</li>
+            <li>Example Screenshot:</li>
+            <img src="rule-editor-example.png" />
+          </ul>
+          <hr />
+          <p></p>
+        </div>
+        <label for="sample-url-input">Chapter Page: </label>
+        <div id="tester" style="display: flex">
+        <input
+          id="sample-url-input"
+          class="longer-input"
+          placeholder="https://www.coolscans.com/coolwebtoon/chapter-1"
+        />
+        <button id="save-chapter-page-button">Clip Chapter Page</button>
+      </div>
+        <p></p>
+        <label for="hub-page-url-input">Hub Page: </label>
+        <div id="tester" style="display: flex">
+        <input
+          type="text"
+          id="hub-page-url-input"
+          class="longer-input"
+          name="hub-page-url-input"
+          placeholder="https://www.coolscans.com/coolwebtoon"
+        />
+        <button id="save-hub-page-button">Clip Hub Page</button>
+      </div>
+        <p></p>
+        <button id="split-url-button">Scan</button>
+        <button id="clear-urls-button">Clear</button>
+        <p></p>
+        <div id="rule-editor-subsection" style="display: none">
+          <table>
+            <thead>
+              <tr>
+                <th>Index</th>
+                <th>Chapter Value</th>
+              </tr>
+            </thead>
+            <tbody id="url-split-table"></tbody>
+          </table>
+          <p></p>
+          <br />
+          <label for="chapter-index-input">Chapter Index: </label>
+          <input type="text" id="chapter-index-input" name="chapter-index-input" />
+          <label for="name-index-input">Name Index: </label>
+          <input type="text" id="name-index-input" name="name-index-input" />
+          <p></p>
+          <button id="save-new-rule-button">Save</button>
+          <p></p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Domain</th>
+              <th>Chapter Index</th>
+              <th>Name Index</th>
+              <th>Hub Page Length</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="rule-editor-table"></tbody>
+        </table>
+      </div>
+      <p></p>
+      <hr>
+      <div>
+        <h1>Load Via JSON</h1>
+        <textarea id="load-via-json-textarea"></textarea>
+        <p></p>
+        <button id="load-via-json-button">Load</button>
+      </div>
       <h1>Github Gist Settings</h1>
       <div>
         <label for="github-token">Github Token: </label>
@@ -64,95 +160,6 @@
         <button id="load-gist-data-button">Load from Gist</button>
         <button id="save-gist-data-button">Save to Gist</button>
         <p></p>
-      </div>
-      <hr />
-      <div style="display: none">
-        <h1>Allowed Domains Settings</h1>
-        <textarea
-          id="allowed-domains-textarea"
-          placeholder="https://www.webtoon-site-here.com/,&#10;https://www.webtoon-site-here.com/"
-        ></textarea>
-        <p></p>
-        <button id="save-allowed-domains-button">Save</button>
-      </div>
-      <div>
-        <h1>Load Via JSON</h1>
-        <textarea id="load-via-json-textarea"></textarea>
-        <p></p>
-        <button id="load-via-json-button">Load</button>
-      </div>
-      <hr />
-      <div>
-        <h1>Rule Editor<i id="rule-editor-help-button" class="bi bi-question-circle bootstrapicon"></i></h1>
-        <div style="display: none" id="rule-editor-help-section">
-          <h1>Rule Editor - Help</h1>
-          <ul>
-            <li>1. Enter in URLs for chapter page & webtoon hub page</li>
-            <li>2. Press Scan</li>
-            <li>3. Look under the "Chapter Value" column</li>
-            <li>
-              4. Enter the corresponding Index value that corresponds with the row that contains the chapter in the
-              "Chapter Index" input field
-            </li>
-            <li>5. Do the same for the "Name Index" field</li>
-            <li>6. Save</li>
-            <li>7. Effectively this is setting how the URLs will be parsed for webtoon name & chapter number</li>
-            <li>Example Screenshot:</li>
-            <img src="rule-editor-example.png" />
-          </ul>
-          <hr />
-          <p></p>
-        </div>
-        <label for="sample-url-input">Chapter Page: </label>
-        <input
-          id="sample-url-input"
-          class="longer-input"
-          placeholder="https://www.coolscans.com/coolwebtoon/chapter-1"
-        />
-        <p></p>
-        <label for="hub-page-url-input">Hub Page: </label>
-        <input
-          type="text"
-          id="hub-page-url-input"
-          class="longer-input"
-          name="hub-page-url-input"
-          placeholder="https://www.coolscans.com/coolwebtoon"
-        />
-        <p></p>
-        <button id="split-url-button">Scan</button>
-        <p></p>
-        <div id="rule-editor-subsection" style="display: none">
-          <table>
-            <thead>
-              <tr>
-                <th>Index</th>
-                <th>Chapter Value</th>
-              </tr>
-            </thead>
-            <tbody id="url-split-table"></tbody>
-          </table>
-          <p></p>
-          <br />
-          <label for="chapter-index-input">Chapter Index: </label>
-          <input type="text" id="chapter-index-input" name="chapter-index-input" />
-          <label for="name-index-input">Name Index: </label>
-          <input type="text" id="name-index-input" name="name-index-input" />
-          <p></p>
-          <button id="save-new-rule-button">Save</button>
-          <p></p>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Domain</th>
-              <th>Chapter Index</th>
-              <th>Name Index</th>
-              <th>Hub Page Length</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="rule-editor-table"></tbody>
-        </table>
       </div>
     </div>
     <table id="chapter-table">

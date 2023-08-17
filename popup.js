@@ -22,6 +22,9 @@ const helpButton = document.getElementById("help-button");
 const splitUrlButton = document.getElementById("split-url-button");
 const saveNewRuleBUtton = document.getElementById("save-new-rule-button");
 const ruleEditorHelpButton = document.getElementById("rule-editor-help-button");
+const saveChapterPageButton = document.getElementById("save-chapter-page-button");
+const saveHubPageButton = document.getElementById("save-hub-page-button");
+const clearUrlsButton = document.getElementById("clear-urls-button");
 
 const githubToken = document.getElementById("github-token");
 const gistUrl = document.getElementById("gist-url");
@@ -57,6 +60,9 @@ splitUrlButton.addEventListener("click", splitUrl);
 saveNewRuleBUtton.addEventListener("click", saveNewRule);
 ruleEditorHelpButton.addEventListener("click", toggleRuleEditorHelp);
 searchInput.addEventListener("input", filterWebtoons);
+saveChapterPageButton.addEventListener("click", saveChapterPage);
+saveHubPageButton.addEventListener("click", saveHubPage);
+clearUrlsButton.addEventListener("click", clearUrls);
 
 let currentUrl;
 chrome.tabs.query(
@@ -68,6 +74,42 @@ chrome.tabs.query(
     currentUrl = tabs[0].url;
   }
 );
+
+function clearUrls() {
+  chrome.storage.local.remove('chapterPageUrl')
+  chrome.storage.local.remove('hubPageUrl')
+
+  chrome.storage.local.set({
+    settingsVisibility : false
+  })
+
+  location.reload()
+}
+
+function saveChapterPage() {
+  chrome.storage.local.set({
+    chapterPageUrl : [currentUrl]
+  })
+
+  chrome.storage.local.set({
+    settingsVisibility : true
+  })
+
+  location.reload()
+}
+
+function saveHubPage() {
+  chrome.storage.local.set({
+    hubPageUrl : [currentUrl]
+  })
+
+  chrome.storage.local.set({
+    settingsVisibility : true
+  })
+
+  location.reload()
+}
+
 
 function filterWebtoons() {
   chrome.storage.local.get(null, (result) => {
@@ -159,10 +201,12 @@ function saveNewRule() {
   const chapterIndex = chapterIndexinput.value;
   const nameIndex = nameIndexInput.value;
   const sampleUrl = sampleUrlInput.value;
+  const hubUrl = hubPageUrlInput.value;
   const hubUrlValue = hubPageUrlInput.value.replace(/\/+$/, "");
   const hubUrlSplit = hubUrlValue.split("/");
   const hubUrlSplitLength = hubUrlSplit.length;
   const urlDomain = extractDomain(sampleUrl);
+  const hubUrlDomain = extractDomain(hubUrl);
 
   chrome.storage.local.get(null, (result) => {
     chrome.storage.local.set({
@@ -173,9 +217,18 @@ function saveNewRule() {
           nameIndex: [nameIndex],
           hubPageLength: [hubUrlSplitLength],
         },
+        [hubUrlDomain]: {
+          chapterIndex: [chapterIndex],
+          nameIndex: [nameIndex],
+          hubPageLength: [hubUrlSplitLength],
+        }
       },
     });
   });
+
+  chrome.storage.local.set({
+    settingsVisibility : false
+  })
 
   location.reload();
 }
@@ -316,6 +369,10 @@ function toggleSettings() {
   } else {
     settingsButton.textContent = "Show Settings";
     settingsDiv.style.display = "none";
+
+    chrome.storage.local.set({
+      settingsVisibility : false
+    })
   }
 }
 
@@ -655,6 +712,31 @@ self.addEventListener("checkForStoredValues", async (event) => {
   chrome.storage.local.get("allowedDomains", function (items) {
     if (items["allowedDomains"] !== undefined) {
       allowedDomainsTextarea.value = items["allowedDomains"][0];
+    }
+  });
+
+  chrome.storage.local.get("chapterPageUrl", function (items) {
+    if (items["chapterPageUrl"] !== undefined) {
+      sampleUrlInput.value = items["chapterPageUrl"][0];
+    }
+  });
+
+  chrome.storage.local.get("hubPageUrl", function (items) {
+    if (items["hubPageUrl"] !== undefined) {
+      hubPageUrlInput.value = items["hubPageUrl"][0];
+    }
+  });
+
+  chrome.storage.local.get("settingsVisibility", function (items) {
+    if (items["settingsVisibility"] !== undefined) {
+      if (items["settingsVisibility"] == true) {
+        settingsDiv.style.display = "block"
+        settingsButton.textContent = "Hide Settings";
+      } else {
+        settingsDiv.style.display = "none"
+        settingsButton.textContent = "Show Settings";
+      }
+      
     }
   });
 });
